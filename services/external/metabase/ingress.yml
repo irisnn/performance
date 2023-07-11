@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metabase
+  annotations:
+    alb.ingress.kubernetes.io/group.name: services
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: metabase.performance.truedat.io
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+  labels:
+    app: metabase
+spec:
+  ingressClassName: alb
+  rules:
+    - host:
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: metabase
+                port:
+                  number: 80

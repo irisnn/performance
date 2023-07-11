@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: performance-truedat
+
+resources:
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/persistence/postgres-external?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/secrets/postgres?ref=5.7.0
+
+configMapGenerator:
+  - name: postgres
+    behavior: merge
+
+secretGenerator:
+  - name: postgres
+    behavior: merge
+    type: Opaque
+    envs:
+      - secret.env
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/externalName
+        value: performance-truedat-ref-rds.chbpqyu9x1f0.eu-west-1.rds.amazonaws.com
+    target:
+      kind: Service
+      name: postgres

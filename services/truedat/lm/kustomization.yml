@@ -1,0 +1,61 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: performance-truedat
+
+resources:
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/services/truedat/auth?ref=5.8.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/createdb?ref=5.8.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/secrets/lm?ref=5.8.0
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: auth
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: auth
+      - op: replace
+        path: /metadata/name
+        value: createdb-auth
+    target:
+      kind: Job
+      name: createdb
+
+#   - patch: |-
+#       - op: replace
+#         path: /metadata/name
+#         value: auth
+#       - op: replace
+#         path: /spec/secretStoreRef/name
+#         value: truedat-secret-store
+#       - op: replace
+#         path: /spec/secretStoreRef/kind
+#         value: ClusterSecretStore    
+#       - op: replace
+#         path: /spec/target/name
+#         value: auth    
+#     target:
+#       kind: ExternalSecret
+#       name: external-secret
+
+#   - patch: |-
+#       - op: add
+#         path: /spec/template/spec/containers/0/envFrom/-
+#         value:
+#           configMapRef:
+#             name: oidc
+#       - op: add
+#         path: /spec/template/spec/containers/0/envFrom/-
+#         value:
+#           secretRef:
+#             name: oidc
+#     target:
+#       kind: Deployment
+#       name: auth
+
+  
+# patchesStrategicMerge:
+#   - external-secret-auth.yml
+#   - replace-configmap.yml

@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+kind: Kustomization
+
+namespace: performance-truedat
+
+resources:
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/config/reload_credentials?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/secrets/reload_credentials?ref=5.7.0
+
+secretGenerator:
+  - name: ecr-registry-helper-secrets
+    behavior: merge
+    type: Opaque
+    envs:
+      - secret.env
+
+configMapGenerator:
+  - name: ecr-registry-helper-cm
+    behavior: merge
+    literals:
+      - NAMESPACE_NAME=performance-truedat

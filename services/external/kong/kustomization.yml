@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: performance-truedat
+
+resources:
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/services/external/kong?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/kong-setup?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/kong-migrations?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/createdb?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/secrets/kong?ref=5.2.2
+  
+secretGenerator:
+  - name: kong
+    behavior: merge
+    type: Opaque
+    envs:
+      - secret.env
+
+
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: kong
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: kong
+      - op: replace
+        path: /metadata/name
+        value: createdb-kong
+    target:
+      kind: Job
+      name: createdb

@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: performance-truedat
+
+resources:
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/services/external/vault?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/vault-migrations?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/jobs/createdb?ref=5.7.0
+  - git@gitlab.bluetab.net:dgs-core/true-dat/td-k8s-base.git/secrets/vault?ref=5.7.0
+
+secretGenerator:
+  - name: vault
+    behavior: merge
+    envs:
+      - secret.env
+    type: Opaque
+
+configMapGenerator:
+  - name: vault
+    behavior: merge
+    literals:
+        - VAULT_DISABLE_MLOCK=true
+        
+ 
+patches:
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/0/configMapRef/name
+        value: vault
+      - op: replace
+        path: /spec/template/spec/containers/0/envFrom/1/secretRef/name
+        value: vault
+      - op: replace
+        path: /metadata/name
+        value: createdb-vault
+    target:
+      kind: Job
+      name: createdb
+  - patch: |-
+      - op: replace
+        path: /metadata/name
+        value: vault
+      - op: replace
+        path: /spec/secretStoreRef/name
+        value: truedat-secret-store
+      - op: replace
+        path: /spec/secretStoreRef/kind
+        value: ClusterSecretStore    
+      - op: replace
+        path: /spec/target/name
+        value: vault    
+    target:
+      kind: ExternalSecret
+      name: external-secret

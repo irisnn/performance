@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::576759405678:role/green-eks-node-group-20230608113929689000000001
+      username: system:node:{{EC2PrivateDNSName}}
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::576759405678:role/blue-eks-node-group-20230608113929689000000002
+      username: system:node:{{EC2PrivateDNSName}}
+  mapUsers: |
+    - userarn: arn:aws:iam::576759405678:user/daniel.anton
+      username: daniel.anton
+      groups:
+        - system:masters
+    - userarn: arn:aws:iam::576759405678:user/iris.nunez
+      username: iris.nunez
+      groups:
+        - system:masters
+    - userarn: arn:aws:iam::576759405678:user/miguel.lagares
+      username: miguel.lagares
+      groups:
+        - system:masters
+
